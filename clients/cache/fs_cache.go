@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const filename = "entry" // Will be a json
@@ -37,7 +38,7 @@ func NewFSCache(cacheDir string) *FSCache {
 	}
 }
 
-func (c *FSCache) Set(_ context.Context, key string, data interface{}) error {
+func (c *FSCache) Set(_ context.Context, key string, data interface{}, _ time.Duration) error {
 	entry, err := NewEntry(data)
 	if err != nil {
 		return err
