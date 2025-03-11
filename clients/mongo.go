@@ -35,6 +35,7 @@ type MongoClient interface {
 	Find(ctx context.Context, req *FindRequest, results interface{}, options ...*options.FindOptions) error
 	Exists(ctx context.Context, req *ExistsRequest) (bool, error)
   Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error
+  Disconnect(ctx context.Context) error
 }
 
 // Concrete implementation
@@ -146,6 +147,10 @@ func (c *mongoClient) Exists(ctx context.Context, req *ExistsRequest) (bool, err
 
 func (c *mongoClient) Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error {
   return c.Collection(req.Database, req.Collection).Aggregate(ctx, req.Pipeline, results)
+}
+
+func (c *mongoClient) Disconnect(ctx context.Context) error {
+  return c.client.Disconnect(ctx)
 }
 
 func NewMongoClient(ctx context.Context, uri, username, password string) MongoClient {
