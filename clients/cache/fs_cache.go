@@ -86,7 +86,19 @@ func (c *FSCache) Get(_ context.Context, key string, data interface{}) error {
 	return nil
 }
 
+func (c *FSCache) GetMany(ctx context.Context, keys []string, data interface{}) error {
+	items := make([]interface{}, 0)
+	for _, key := range keys {
+		item := c.Get(ctx, key, data)
+		if item != nil {
+			items = append(items, item)
+		}
+	}
+
+	return nil
+}
+
 func (c *FSCache) Delete(_ context.Context, key string) error {
-  location := filepath.Join(c.cacheDir, key)
-  return os.RemoveAll(location)
+	location := filepath.Join(c.cacheDir, key)
+	return os.RemoveAll(location)
 }

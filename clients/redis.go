@@ -12,6 +12,7 @@ import (
 
 type RedisClient interface {
 	Get(context context.Context, key string) *redis.StringCmd
+	MGet(context context.Context, keys ...string) *redis.SliceCmd
 	Set(context context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	LPush(context context.Context, key string, values ...interface{}) *redis.IntCmd
 	BLPop(context context.Context, timeout time.Duration, keys ...string) *redis.StringSliceCmd
@@ -25,54 +26,76 @@ func RedisID(prefix string, id string) string {
 var _ RedisClient = (*redis.Client)(nil)
 
 type redisClient struct {
-  client *redis.Client
+	client *redis.Client
 }
 
 func NewRedisCacheClient(client *redis.Client) *redisClient {
-  return &redisClient{client: client}
+	return &redisClient{client: client}
 }
 
-
 func (rc *redisClient) Get(ctx context.Context, key string, value interface{}) error {
-  result := rc.client.Get(ctx, key)
+	result := rc.client.Get(ctx, key)
+	if err := result.Err(); err != nil {
+		if err == redis.Nil {
+			return fmt.Errorf("key %s not found", key)
+		}
+		return fmt.Errorf("redis get error: %w", err)
+	}
+
+	jsonString, err := result.Result()
+	if err != nil {
+		return fmt.Errorf("failed to get result: %w", err)
+	}
+
+	if err := json.Unmarshal([]byte(jsonString), value); err != nil {
+		return fmt.Errorf("failed to unmarshal value: %w", err)
+	}
+
+	return nil
+}
+
+func (rc *redisClient) GetMany(ctx context.Context, keys []string, values interface{}) error {
+  result := rc.client.MGet(ctx, keys...)
   if err := result.Err(); err != nil {
-    if err == redis.Nil {
-      return fmt.Errorf("key %s not found", key)
-    }
-    return fmt.Errorf("redis get error: %w", err)
+    return fmt.Errorf("redis mget error: %w", err)
   }
 
-  jsonString, err := result.Result()
+  jsonStrings, err := result.Result()
   if err != nil {
     return fmt.Errorf("failed to get result: %w", err)
   }
 
-  if err := json.Unmarshal([]byte(jsonString), value); err != nil {
-    return fmt.Errorf("failed to unmarshal value: %w", err)
+  data, err := json.Marshal(jsonStrings)
+  if err != nil {
+    return fmt.Errorf("failed to marshal json: %w", err)
+  }
+
+  if err := json.Unmarshal(data, values); err != nil {
+    return fmt.Errorf("failed to unmarshal values: %w", err)
   }
 
   return nil
 }
 
 func (rc *redisClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-  data, err := json.Marshal(value)
-  if err != nil {
-    return fmt.Errorf("failed to marshal value: %w", err)
-  }
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("failed to marshal value: %w", err)
+	}
 
-  jsonString := string(data)
-  if err := rc.client.Set(ctx, key, jsonString, expiration).Err(); err != nil {
-    return fmt.Errorf("redis set error: %w", err)
-  }
+	jsonString := string(data)
+	if err := rc.client.Set(ctx, key, jsonString, expiration).Err(); err != nil {
+		return fmt.Errorf("redis set error: %w", err)
+	}
 
-  return nil
+	return nil
 }
 
 func (rc *redisClient) Delete(ctx context.Context, key string) error {
-  if err := rc.client.Del(ctx, key).Err(); err != nil {
-    return fmt.Errorf("redis del error: %w", err)
-  }
-  return nil
+	if err := rc.client.Del(ctx, key).Err(); err != nil {
+		return fmt.Errorf("redis del error: %w", err)
+	}
+	return nil
 }
 
 // ProtoClient wraps RedisClient to handle protobuf operations
@@ -174,4 +197,3 @@ func (pc *ProtoClient) DeleteKeys(ctx context.Context, keys ...string) error {
 func ProtoKey(prefix string, messageType string, id string) string {
 	return fmt.Sprintf("%s:%s:%s", prefix, messageType, id)
 }
-
