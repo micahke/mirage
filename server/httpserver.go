@@ -27,12 +27,7 @@ func (s *HttpServer) Start() error {
 
 func (s *HttpServer) RegisterRoutes(routes []*Route) {
   for _, route := range routes {
-    handler, ok := route.Handler.(func (*gin.Context))
-    if !ok {
-      fmt.Println("Invalid handler")
-      continue
-    }
-    s.router.Handle(route.Method, route.Path, handler)
+    s.router.Handle(route.Method, route.Path, route.Handler)
   }
 }
 

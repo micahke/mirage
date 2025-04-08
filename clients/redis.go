@@ -92,10 +92,18 @@ func (rc *redisClient) Set(ctx context.Context, key string, value interface{}, e
 }
 
 func (rc *redisClient) Delete(ctx context.Context, key string) error {
-	if err := rc.client.Del(ctx, key).Err(); err != nil {
-		return fmt.Errorf("redis del error: %w", err)
-	}
-	return nil
+  if err := rc.client.Del(ctx, key).Err(); err != nil {
+    return fmt.Errorf("redis del error: %w", err)
+  }
+  return nil
+}
+
+func (rc *redisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
+  return rc.client.Del(ctx, keys...)
+}
+
+func (rc *redisClient) BLPop(context context.Context, timeout time.Duration, keys ...string) *redis.StringSliceCmd {
+  return rc.client.BLPop(context, timeout, keys...)
 }
 
 // ProtoClient wraps RedisClient to handle protobuf operations

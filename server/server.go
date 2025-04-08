@@ -1,9 +1,11 @@
 package server
 
+import "github.com/gin-gonic/gin"
+
 type Route struct {
 	Method  string
 	Path    string
-	Handler interface{}
+	Handler gin.HandlerFunc
 }
 
 type Server interface {

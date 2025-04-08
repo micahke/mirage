@@ -10,4 +10,5 @@ type Clients struct {
 	MongoClient    MongoClient
 	DatabaseClient DatabaseClient
 	Cache          cache.Cache
+	Redis          RedisClient
 }
