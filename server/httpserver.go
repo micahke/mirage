@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,4 +34,11 @@ func (s *HttpServer) RegisterRoutes(routes []*Route) {
 
 func (s *HttpServer) Port() int {
   return s.port
+}
+
+
+func (s *HttpServer) EnableCors() {
+  config := cors.DefaultConfig()
+  config.AllowAllOrigins = true
+  s.router.Use(cors.New(config))
 }

@@ -3,11 +3,12 @@ package config
 import (
 	"os"
 
-  _ "github.com/joho/godotenv/autoload"
+	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func LoadENV() {
-	// godotenv.Load()
+	godotenv.Load()
 }
 
 func GetValue(key string) string {

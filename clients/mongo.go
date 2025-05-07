@@ -24,7 +24,7 @@ type MongoCollection interface {
 
 	Indexes() MongoIndexView
 	Exists(ctx context.Context, filter interface{}) (bool, error)
-  Aggregate(ctx context.Context, pipeline interface{}, results interface{}) error
+	Aggregate(ctx context.Context, pipeline interface{}, results interface{}) error
 }
 
 type MongoClient interface {
@@ -34,8 +34,8 @@ type MongoClient interface {
 	FindOne(ctx context.Context, req *FindOneRequest, result interface{}) error
 	Find(ctx context.Context, req *FindRequest, results interface{}, options ...*options.FindOptions) error
 	Exists(ctx context.Context, req *ExistsRequest) (bool, error)
-  Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error
-  Disconnect(ctx context.Context) error
+	Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error
+	Disconnect(ctx context.Context) error
 }
 
 // Concrete implementation
@@ -50,7 +50,7 @@ func (c *mongoCollection) Indexes() MongoIndexView {
 }
 
 func IsNoDocumentsFound(err error) bool {
-  return err == mongo.ErrNoDocuments
+	return err == mongo.ErrNoDocuments
 }
 
 // Implementation for indexes
@@ -107,12 +107,12 @@ func (c *mongoCollection) Exists(ctx context.Context, filter interface{}) (bool,
 }
 
 func (c *mongoCollection) Aggregate(ctx context.Context, pipeline interface{}, results interface{}) error {
-  cursor, err := c.coll.Aggregate(ctx, pipeline)
-  if err != nil {
-    return err
-  }
-  defer cursor.Close(ctx)
-  return cursor.All(ctx, results)
+	cursor, err := c.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(ctx)
+	return cursor.All(ctx, results)
 }
 
 type mongoClient struct {
@@ -138,7 +138,28 @@ func (c *mongoClient) FindOne(ctx context.Context, req *FindOneRequest, result i
 }
 
 func (c *mongoClient) Find(ctx context.Context, req *FindRequest, results interface{}, opts ...*options.FindOptions) error {
-	return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results)
+	var opt *options.FindOptions = nil
+	if req.Limit > 0 {
+		opt = options.Find().SetLimit(req.Limit)
+	}
+	if req.Skip > 0 {
+		if opt == nil {
+			opt = options.Find()
+		}
+		opt.SetSkip(req.Skip)
+	}
+	if req.Sort != nil {
+		if opt == nil {
+			opt = options.Find()
+		}
+		opt.SetSort(req.Sort)
+	}
+
+	if opt == nil {
+		return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results)
+	}
+
+  return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results, opt)
 }
 
 func (c *mongoClient) Exists(ctx context.Context, req *ExistsRequest) (bool, error) {
@@ -146,11 +167,11 @@ func (c *mongoClient) Exists(ctx context.Context, req *ExistsRequest) (bool, err
 }
 
 func (c *mongoClient) Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error {
-  return c.Collection(req.Database, req.Collection).Aggregate(ctx, req.Pipeline, results)
+	return c.Collection(req.Database, req.Collection).Aggregate(ctx, req.Pipeline, results)
 }
 
 func (c *mongoClient) Disconnect(ctx context.Context) error {
-  return c.client.Disconnect(ctx)
+	return c.client.Disconnect(ctx)
 }
 
 func NewMongoClient(ctx context.Context, uri, username, password string) MongoClient {
