@@ -11,4 +11,6 @@ type Clients struct {
 	DatabaseClient DatabaseClient
 	Cache          cache.Cache
 	Redis          RedisClient
+	S3             S3Client
+	S3Presign      PresignClient
 }
