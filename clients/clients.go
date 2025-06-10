@@ -13,4 +13,5 @@ type Clients struct {
 	Redis          RedisClient
 	S3             S3Client
 	S3Presign      PresignClient
+	Firebase       FirebaseClient
 }
