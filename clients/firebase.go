@@ -16,6 +16,7 @@ type FirebaseClient interface {
 	DeleteUser(ctx context.Context, uid string) error
 	GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error)
 	SetDisplayName(ctx context.Context, uid string, displayName string) error
+	VerifyIdToken(ctx context.Context, idToken string) (*auth.Token, error)
 }
 
 type Client struct {
@@ -78,6 +79,14 @@ func (c *Client) DeleteUser(ctx context.Context, uid string) error {
 
 func (c *Client) GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error) {
 	return c.auth.GetUserByEmail(ctx, email)
+}
+
+func (c *Client) VerifyIdToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	user, err := c.auth.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (c *Client) SetDisplayName(ctx context.Context, uid string, displayName string) error {

@@ -41,6 +41,13 @@ type AggregateRequest struct {
 	Pipeline   interface{}
 }
 
+type UpdateOneRequest struct {
+	Database   string
+	Collection string
+	Filter     interface{}
+	Update     interface{}
+}
+
 type DatabaseClient interface {
 	InsertOne(context.Context, *InsertOneRequest) error
 	InsertMany(context.Context, *InsertManyRequest) error

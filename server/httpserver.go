@@ -23,22 +23,30 @@ func NewHttpServer(port int) *HttpServer {
 }
 
 func (s *HttpServer) Start() error {
-  return s.router.Run(fmt.Sprintf(":%d", s.port))
+	return s.router.Run(fmt.Sprintf(":%d", s.port))
 }
 
 func (s *HttpServer) RegisterRoutes(routes []*Route) {
-  for _, route := range routes {
-    s.router.Handle(route.Method, route.Path, route.Handler)
-  }
+	for _, route := range routes {
+		if len(route.Middleware) > 0 {
+			s.router.Handle(route.Method, route.Path, append(route.Middleware, route.Handler)...)
+		} else {
+			s.router.Handle(route.Method, route.Path, route.Handler)
+		}
+	}
 }
 
 func (s *HttpServer) Port() int {
-  return s.port
+	return s.port
 }
 
-
 func (s *HttpServer) EnableCors() {
-  config := cors.DefaultConfig()
-  config.AllowAllOrigins = true
-  s.router.Use(cors.New(config))
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization") // Add this line
+	s.router.Use(cors.New(config))
+}
+
+func (s *HttpServer) Router() *gin.Engine {
+	return s.router
 }

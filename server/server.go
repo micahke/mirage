@@ -6,6 +6,7 @@ type Route struct {
 	Method  string
 	Path    string
 	Handler gin.HandlerFunc
+  Middleware []gin.HandlerFunc
 }
 
 type Server interface {
