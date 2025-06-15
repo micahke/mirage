@@ -3,9 +3,7 @@ package clients
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"log"
-	"os"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -68,26 +66,21 @@ func NewFirebaseClientFromBase64String(ctx context.Context, base64Str string) *C
 		log.Fatalf("failed to decode base64 Firebase credentials: %v", err)
 	}
 
-	fmt.Println("Decoded Firebase credentials successfully")
-	fmt.Println(string(decoded))
-
-	// Create a temp file and write the decoded JSON to it
-	tmpFile, err := os.CreateTemp("", "firebase-credentials-*.json")
+	opt := option.WithCredentialsJSON(decoded)
+	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
-		log.Fatalf("failed to create temp file: %v", err)
+		log.Fatalf("error initializing app: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
 
-	if _, err := tmpFile.Write(decoded); err != nil {
-		tmpFile.Close()
-		log.Fatalf("failed to write to temp file: %v", err)
+	auth, err := app.Auth(ctx)
+	if err != nil {
+		log.Fatalf("error getting auth client: %v", err)
 	}
-	tmpFile.Close()
 
-	fmt.Println("Temp file created successfully:", tmpFile.Name())
-
-	// Use the existing function with the temp file path
-	return NewFirebaseClientFromServiceAccount(ctx, tmpFile.Name())
+	return &Client{
+		app:  app,
+		auth: auth,
+	}
 }
 
 func (c *Client) CreateUser(ctx context.Context, email string, password string) (*auth.UserRecord, error) {
