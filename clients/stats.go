@@ -1,6 +1,8 @@
 package clients
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -19,12 +21,12 @@ type StatsClient interface {
 	Scope(scopes ...string) StatsClient
 }
 
-func StartPromListener() {
+func StartPromListener(port int) {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-
+		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
+			log.Fatalf("Failed to start Prometheus listener: %v", err)
 		}
 	}()
 }
