@@ -102,3 +102,11 @@ func (c *FSCache) Delete(_ context.Context, key string) error {
 	location := filepath.Join(c.cacheDir, key)
 	return os.RemoveAll(location)
 }
+
+func (c *FSCache) ScanKeys(ctx context.Context, pattern string) ([]string, error) {
+	files, err := filepath.Glob(filepath.Join(c.cacheDir, pattern))
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}

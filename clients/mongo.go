@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,7 +18,7 @@ type MongoCollection interface {
 	InsertMany(ctx context.Context, documents []interface{}) error
 	FindOne(ctx context.Context, filter interface{}, result interface{}) error
 	Find(ctx context.Context, filter interface{}, results interface{}, options ...*options.FindOptions) error
-	UpdateOne(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error)
+	UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 	UpdateMany(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error)
 	DeleteOne(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
 	DeleteMany(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
@@ -85,8 +86,8 @@ func (c *mongoCollection) Find(ctx context.Context, filter interface{}, results 
 	return cursor.All(ctx, results)
 }
 
-func (c *mongoCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
-	return c.coll.UpdateOne(ctx, filter, update)
+func (c *mongoCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	return c.coll.UpdateOne(ctx, filter, update, opts...)
 }
 
 func (c *mongoCollection) UpdateMany(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
@@ -159,7 +160,7 @@ func (c *mongoClient) Find(ctx context.Context, req *FindRequest, results interf
 		return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results)
 	}
 
-  return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results, opt)
+	return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results, opt)
 }
 
 func (c *mongoClient) Exists(ctx context.Context, req *ExistsRequest) (bool, error) {

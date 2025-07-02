@@ -55,26 +55,26 @@ func (rc *redisClient) Get(ctx context.Context, key string, value interface{}) e
 }
 
 func (rc *redisClient) GetMany(ctx context.Context, keys []string, values interface{}) error {
-  result := rc.client.MGet(ctx, keys...)
-  if err := result.Err(); err != nil {
-    return fmt.Errorf("redis mget error: %w", err)
-  }
+	result := rc.client.MGet(ctx, keys...)
+	if err := result.Err(); err != nil {
+		return fmt.Errorf("redis mget error: %w", err)
+	}
 
-  jsonStrings, err := result.Result()
-  if err != nil {
-    return fmt.Errorf("failed to get result: %w", err)
-  }
+	jsonStrings, err := result.Result()
+	if err != nil {
+		return fmt.Errorf("failed to get result: %w", err)
+	}
 
-  data, err := json.Marshal(jsonStrings)
-  if err != nil {
-    return fmt.Errorf("failed to marshal json: %w", err)
-  }
+	data, err := json.Marshal(jsonStrings)
+	if err != nil {
+		return fmt.Errorf("failed to marshal json: %w", err)
+	}
 
-  if err := json.Unmarshal(data, values); err != nil {
-    return fmt.Errorf("failed to unmarshal values: %w", err)
-  }
+	if err := json.Unmarshal(data, values); err != nil {
+		return fmt.Errorf("failed to unmarshal values: %w", err)
+	}
 
-  return nil
+	return nil
 }
 
 func (rc *redisClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
@@ -92,18 +92,37 @@ func (rc *redisClient) Set(ctx context.Context, key string, value interface{}, e
 }
 
 func (rc *redisClient) Delete(ctx context.Context, key string) error {
-  if err := rc.client.Del(ctx, key).Err(); err != nil {
-    return fmt.Errorf("redis del error: %w", err)
-  }
-  return nil
+	if err := rc.client.Del(ctx, key).Err(); err != nil {
+		return fmt.Errorf("redis del error: %w", err)
+	}
+	return nil
 }
 
 func (rc *redisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
-  return rc.client.Del(ctx, keys...)
+	return rc.client.Del(ctx, keys...)
 }
 
 func (rc *redisClient) BLPop(context context.Context, timeout time.Duration, keys ...string) *redis.StringSliceCmd {
-  return rc.client.BLPop(context, timeout, keys...)
+	return rc.client.BLPop(context, timeout, keys...)
+}
+
+func (rc *redisClient) ScanKeys(ctx context.Context, pattern string) ([]string, error) {
+	var (
+		cursor uint64
+		keys   []string
+	)
+	for {
+		batch, newCursor, err := rc.client.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			return nil, fmt.Errorf("redis scan error: %w", err)
+		}
+		keys = append(keys, batch...)
+		cursor = newCursor
+		if cursor == 0 {
+			break
+		}
+	}
+	return keys, nil
 }
 
 // ProtoClient wraps RedisClient to handle protobuf operations

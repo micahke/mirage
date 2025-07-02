@@ -10,4 +10,6 @@ type Cache interface {
 	GetMany(context.Context, []string, interface{}) error
 	Set(context.Context, string, interface{}, time.Duration) error
 	Delete(context.Context, string) error
+
+	ScanKeys(context.Context, string) ([]string, error)
 }
