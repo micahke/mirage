@@ -19,6 +19,7 @@ type MongoCollection interface {
 	FindOne(ctx context.Context, filter interface{}, result interface{}) error
 	Find(ctx context.Context, filter interface{}, results interface{}, options ...*options.FindOptions) error
 	UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) *mongo.SingleResult
 	UpdateMany(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error)
 	DeleteOne(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
 	DeleteMany(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
@@ -88,6 +89,10 @@ func (c *mongoCollection) Find(ctx context.Context, filter interface{}, results 
 
 func (c *mongoCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	return c.coll.UpdateOne(ctx, filter, update, opts...)
+}
+
+func (c *mongoCollection) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) *mongo.SingleResult {
+	return c.coll.FindOneAndUpdate(ctx, filter, update, opts...)
 }
 
 func (c *mongoCollection) UpdateMany(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
