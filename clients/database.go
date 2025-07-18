@@ -48,6 +48,13 @@ type UpdateOneRequest struct {
 	Update     interface{}
 }
 
+type ReplaceOneRequest struct {
+	Database    string
+	Collection  string
+	Filter      interface{}
+	Replacement interface{}
+}
+
 type DatabaseClient interface {
 	InsertOne(context.Context, *InsertOneRequest) error
 	InsertMany(context.Context, *InsertManyRequest) error

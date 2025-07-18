@@ -23,6 +23,7 @@ type MongoCollection interface {
 	UpdateMany(ctx context.Context, filter interface{}, update interface{}) (*mongo.UpdateResult, error)
 	DeleteOne(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
 	DeleteMany(ctx context.Context, filter interface{}) (*mongo.DeleteResult, error)
+	ReplaceOne(ctx context.Context, filter interface{}, replacement interface{}) error
 
 	Indexes() MongoIndexView
 	Exists(ctx context.Context, filter interface{}) (bool, error)
@@ -37,6 +38,7 @@ type MongoClient interface {
 	Find(ctx context.Context, req *FindRequest, results interface{}, options ...*options.FindOptions) error
 	Exists(ctx context.Context, req *ExistsRequest) (bool, error)
 	Aggregate(ctx context.Context, req *AggregateRequest, results interface{}) error
+	ReplaceOne(ctx context.Context, req *ReplaceOneRequest) error
 	Disconnect(ctx context.Context) error
 }
 
@@ -107,6 +109,11 @@ func (c *mongoCollection) DeleteMany(ctx context.Context, filter interface{}) (*
 	return c.coll.DeleteMany(ctx, filter)
 }
 
+func (c *mongoCollection) ReplaceOne(ctx context.Context, filter interface{}, replacement interface{}) error {
+	_, err := c.coll.ReplaceOne(ctx, filter, replacement)
+	return err
+}
+
 func (c *mongoCollection) Exists(ctx context.Context, filter interface{}) (bool, error) {
 	count, err := c.coll.CountDocuments(ctx, filter)
 	return count > 0, err
@@ -166,6 +173,10 @@ func (c *mongoClient) Find(ctx context.Context, req *FindRequest, results interf
 	}
 
 	return c.Collection(req.Database, req.Collection).Find(ctx, req.Filter, results, opt)
+}
+
+func (c *mongoClient) ReplaceOne(ctx context.Context, req *ReplaceOneRequest) error {
+	return c.Collection(req.Database, req.Collection).ReplaceOne(ctx, req.Filter, req.Replacement)
 }
 
 func (c *mongoClient) Exists(ctx context.Context, req *ExistsRequest) (bool, error) {
