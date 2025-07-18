@@ -110,3 +110,19 @@ func (c *FSCache) ScanKeys(ctx context.Context, pattern string) ([]string, error
 	}
 	return files, nil
 }
+
+func (c *FSCache) Incr(ctx context.Context, key string) error {
+	return nil
+}
+
+func (c *FSCache) IncrBy(ctx context.Context, key string, amount int64) (int64, error) {
+	return 0, nil
+}
+
+func (c *FSCache) Decr(ctx context.Context, key string) error {
+	return nil
+}
+
+func (c *FSCache) DecrBy(ctx context.Context, key string, amount int64) (int64, error) {
+	return 0, nil
+}

@@ -18,6 +18,8 @@ type FirebaseClient interface {
 	GetUserByEmail(ctx context.Context, email string) (*auth.UserRecord, error)
 	SetDisplayName(ctx context.Context, uid string, displayName string) error
 	VerifyIdToken(ctx context.Context, idToken string) (*auth.Token, error)
+	GetEmailVerificationLink(ctx context.Context, email string) (string, error)
+	GetPasswordResetLink(ctx context.Context, email string) (string, error)
 }
 
 type Client struct {
@@ -118,4 +120,20 @@ func (c *Client) SetDisplayName(ctx context.Context, uid string, displayName str
 	userToUpdate.DisplayName(displayName)
 	_, err := c.auth.UpdateUser(ctx, uid, userToUpdate)
 	return err
+}
+
+func (c *Client) GetEmailVerificationLink(ctx context.Context, email string) (string, error) {
+	link, err := c.auth.EmailVerificationLink(ctx, email)
+	if err != nil {
+		return "", err
+	}
+	return link, nil
+}
+
+func (c *Client) GetPasswordResetLink(ctx context.Context, email string) (string, error) {
+	link, err := c.auth.PasswordResetLink(ctx, email)
+	if err != nil {
+		return "", err
+	}
+	return link, nil
 }

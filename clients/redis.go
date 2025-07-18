@@ -125,6 +125,39 @@ func (rc *redisClient) ScanKeys(ctx context.Context, pattern string) ([]string, 
 	return keys, nil
 }
 
+func (rc *redisClient) Incr(ctx context.Context, key string) error {
+	res := rc.client.Incr(ctx, key)
+	if res.Err() != nil {
+		return res.Err()
+	}
+	return nil
+}
+
+// Increaste the value by a specific amount and return the new value
+func (rc *redisClient) IncrBy(ctx context.Context, key string, amount int64) (int64, error) {
+	res := rc.client.IncrBy(ctx, key, amount)
+	if res.Err() != nil {
+		return 0, res.Err()
+	}
+	return res.Val(), nil
+}
+
+func (rc *redisClient) Decr(ctx context.Context, key string) error {
+	res := rc.client.Decr(ctx, key)
+	if res.Err() != nil {
+		return res.Err()
+	}
+	return nil
+}
+
+func (rc *redisClient) DecrBy(ctx context.Context, key string, amount int64) (int64, error) {
+	res := rc.client.DecrBy(ctx, key, amount)
+	if res.Err() != nil {
+		return 0, res.Err()
+	}
+	return res.Val(), nil
+}
+
 // ProtoClient wraps RedisClient to handle protobuf operations
 type ProtoClient struct {
 	client RedisClient
