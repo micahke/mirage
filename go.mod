@@ -14,6 +14,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.1
 	go.mongodb.org/mongo-driver v1.17.2
+	go.uber.org/mock v0.5.2
 	go.uber.org/zap v1.27.0
 	google.golang.org/api v0.215.0
 	google.golang.org/protobuf v1.36.6
