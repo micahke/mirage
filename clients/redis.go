@@ -91,6 +91,29 @@ func (rc *redisClient) Set(ctx context.Context, key string, value interface{}, e
 	return nil
 }
 
+func (rc *redisClient) SetMany(ctx context.Context, keys []string, values []interface{}, expiration time.Duration) error {
+	if len(keys) != len(values) {
+		return fmt.Errorf("keys and values must be the same length")
+	}
+
+	pipe := rc.client.Pipeline()
+	for i, key := range keys {
+		data, err := json.Marshal(values[i])
+		if err != nil {
+			return fmt.Errorf("failed to marshal value: %w", err)
+		}
+
+		pipe.Set(ctx, key, string(data), expiration)
+	}
+
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("redis mset error: %w", err)
+	}
+
+	return nil
+}
+
 func (rc *redisClient) Delete(ctx context.Context, key string) error {
 	if err := rc.client.Del(ctx, key).Err(); err != nil {
 		return fmt.Errorf("redis del error: %w", err)

@@ -126,3 +126,7 @@ func (c *FSCache) Decr(ctx context.Context, key string) error {
 func (c *FSCache) DecrBy(ctx context.Context, key string, amount int64) (int64, error) {
 	return 0, nil
 }
+
+func (c *FSCache) SetMany(ctx context.Context, keys []string, values []interface{}, expiration time.Duration) error {
+	return nil
+}
