@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"crypto/tls"
+
 	"github.com/hibiken/asynq"
 )
 
@@ -31,6 +33,40 @@ func NewAsynqClient(redisURL string) *AsynqClient {
 	mux := asynq.NewServeMux()
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: redisURL},
+		asynq.Config{
+			Concurrency: 3,
+			Queues: map[string]int{
+				"default": 1,
+			},
+		},
+	)
+
+	return &AsynqClient{
+		asyncClient: client,
+		mux:         mux,
+		srv:         srv,
+	}
+}
+
+func NewAsynqClientWithConfig(redisURL, username, password string, useTLS bool) *AsynqClient {
+	// Create Redis client options with full configuration
+	redisOpts := asynq.RedisClientOpt{
+		Addr:     redisURL,
+		Username: username,
+		Password: password,
+	}
+
+	if useTLS {
+		redisOpts.TLSConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+
+	// Create a new asynq client with full configuration
+	client := asynq.NewClient(redisOpts)
+	mux := asynq.NewServeMux()
+	srv := asynq.NewServer(
+		redisOpts,
 		asynq.Config{
 			Concurrency: 3,
 			Queues: map[string]int{
