@@ -14,4 +14,5 @@ type Clients struct {
 	S3             S3Client
 	S3Presign      PresignClient
 	Firebase       FirebaseClient
+	Scheduler      SchedulerClient
 }
