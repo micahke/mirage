@@ -8,6 +8,7 @@ type Clients struct {
 	Logger         Logger
 	Stats          StatsClient
 	MongoClient    MongoClient
+	PostgresClient PostgresClient
 	DatabaseClient DatabaseClient
 	Cache          cache.Cache
 	Redis          RedisClient
